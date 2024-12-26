@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: BlocProvider(
-        create: (context) => TaskBloc(_taskRepository)..add(LoadTask()),
+        create: (context) => TaskBloc(_taskRepository)..add(const LoadTask()),
         child: BlocBuilder<TaskBloc, TasksState>(
           builder: (context, state) {
             if (state is TasksLoading) {
