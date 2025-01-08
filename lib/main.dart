@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final TaskRepository taskRepository = TaskRepository();
     return BlocProvider(
-      create: (context) => TaskBloc(taskRepository),
+      create: (context) => TaskBloc(taskRepository)..add(const LoadTask()),
       child: MaterialApp(
         title: 'Task App',
         debugShowCheckedModeBanner: false,

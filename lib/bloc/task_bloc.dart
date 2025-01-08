@@ -10,7 +10,7 @@ part 'task_state.dart';
 class TaskBloc extends Bloc<TaskEvent, TasksState> {
   final TaskRepository _taskRepository;
 
-  TaskBloc(this._taskRepository) : super(const TasksLoaded()) {
+  TaskBloc(this._taskRepository) : super(const TasksLoaded([])) {
     on<LoadTask>(_onLoadTask);
     on<AddTask>(_onAddTask);
     on<DeleteTask>(_onDeleteTask);
@@ -21,7 +21,7 @@ class TaskBloc extends Bloc<TaskEvent, TasksState> {
     emit(TasksLoading());
     try {
       List<Task> tasks = await _taskRepository.getAllTask();
-      emit(TasksLoaded(tasks: tasks));
+      emit(TasksLoaded(tasks));
     } catch (e) {
       emit(TasksError(e.toString()));
     }
@@ -30,12 +30,19 @@ class TaskBloc extends Bloc<TaskEvent, TasksState> {
   Future<void> _onAddTask(AddTask event, Emitter<TasksState> emit) async {
     final state = this.state;
     if (state is TasksLoaded) {
-      bool status = await _taskRepository.addTaskData(event.task);
-      if (status) {
-        List<Task> tasks = await _taskRepository.getAllTask();
-        emit(TasksLoaded(tasks: tasks));
-      } else {
-        emit(TasksLoaded(tasks: List.from(state.tasks)..add(event.task)));
+      final currentState = state as TasksLoaded;
+      emit(TasksLoading());
+      try {
+        bool status = await _taskRepository.addTaskData(event.task);
+        if (status) {
+          List<Task> tasks = await _taskRepository.getAllTask();
+          // emit(TasksLoaded(List.from(currentState.tasks)..add(tasks.last)));
+          emit(TasksLoaded(tasks));
+        } else {
+          // emit(TasksLoaded(List.from(state.tasks)..add(event.task)));
+        }
+      } catch (e) {
+        emit(TasksError('error:${e.toString()}'));
       }
     }
   }
@@ -46,12 +53,12 @@ class TaskBloc extends Bloc<TaskEvent, TasksState> {
       bool status = await _taskRepository.updateTaskData(event.task);
       if (status) {
         List<Task> tasks = await _taskRepository.getAllTask();
-        emit(TasksLoaded(tasks: tasks));
+        emit(TasksLoaded(tasks));
       } else {
         List<Task> tasks = (state.tasks.map((task) {
           return task.id == event.task.id ? event.task : task;
         })).toList();
-        emit(TasksLoaded(tasks: tasks));
+        emit(TasksLoaded(tasks));
       }
     }
   }
@@ -62,12 +69,12 @@ class TaskBloc extends Bloc<TaskEvent, TasksState> {
       bool status = await _taskRepository.deleteTaskData(event.task);
       if (status) {
         List<Task> tasks = await _taskRepository.getAllTask();
-        emit(TasksLoaded(tasks: tasks));
+        emit(TasksLoaded(tasks));
       } else {
         List<Task> tasks = state.tasks.where((task) {
           return task.id != event.task.id;
         }).toList();
-        emit(TasksLoaded(tasks: tasks));
+        emit(TasksLoaded(tasks));
       }
     }
   }
